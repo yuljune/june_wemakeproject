@@ -1,0 +1,15 @@
+@CHARSET "UTF-8";
+
+#table td{padding : 20px;
+	
+}
+#tds{
+	border-top : 1px solid #bcbcbc;
+	border-bottom: 1px solid #bcbcbc;
+	border-collapse: collapse;
+}
+input{
+	width:250px;
+	height:35px;
+}
+

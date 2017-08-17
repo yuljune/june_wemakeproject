@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.main.dao.ProjectBoardInterface">
+
+	<!-- 프로젝트 메인 불러오기 -->
+	<select id="projectmainlist" resultType="com.spring.main.dto.ProjectDto">
+		<![CDATA[select * from projectBbs where rownum<=8 order by project_idx desc]]>
+	</select>
+	
+	<!-- 전체 게시물 수 -->
+	<select id="allCount" resultType="Integer">
+		select count(*) from ProjectBbs
+	</select>
+	
+	<!-- 리스트 불러오기 -->
+	<select id="listCall" resultType="com.spring.main.dto.ProjectDto">
+		SELECT project_idx,user_id, user_name, user_type, assign, subject,summary,kind,content,reg_date,begin_date,end_date,take_start,take_end,condition,skills,applicant,hope,people FROM 
+		(SELECT ROW_NUMBER() OVER (ORDER BY project_idx DESC) AS rnum, project_idx, user_id, user_name, user_type, assign, subject, summary, kind, content, reg_date, begin_date, end_date, take_start, take_end, condition, skills, applicant, hope, people FROM projectBbs order by project_idx desc) 
+		WHERE rnum BETWEEN #{param1} and #{param2}
+	</select>
+	
+	<!-- 상태에 따른 테이블 개수 불러오기 -->
+	<select id="mozipCount" resultType="Integer">
+		select count(*) from ProjectBbs where condition = #{param1}
+	</select>
+	
+	<!-- 리스트 불러오기 -->
+	<select id="mozipCall" resultType="com.spring.main.dto.ProjectDto">
+		SELECT project_idx,user_id, user_name, user_type, assign, subject,summary,kind,content,reg_date,begin_date,end_date,take_start,take_end,condition,skills,applicant,hope,people FROM 
+		(SELECT ROW_NUMBER() OVER (ORDER BY project_idx DESC) AS rnum, project_idx, user_id, user_name, user_type, assign, subject, summary, kind, content, reg_date, begin_date, end_date, take_start, take_end, condition, skills, applicant, hope, people FROM projectBbs where condition =#{param3}) 
+		WHERE rnum BETWEEN #{param1} and #{param2}
+	</select>
+	
+	<!-- 전체 게시물 수 -->
+	<select id="searchCount" resultType="Integer">
+		select count(*) from ProjectBbs where ${param1} like #{param2}
+	</select>
+	
+	<!-- 제목+내용 게시물 수 -->
+	<select id="moresearchCount" resultType="Integer">
+		select count(*) from ProjectBbs where subject like #{param1} or content like #{param1}
+	</select>
+	
+	<!-- 유저의 기술에 따른 게시물 수 -->
+	<select id="skillcount" resultType="Integer">
+		select count(*) from projectBbs where ${value}
+	</select>
+	<!-- 유저의 기술에 따른 게시물 불러오기-->
+	<select id="skillsearchlist" resultType="com.spring.main.dto.ProjectDto">
+		SELECT project_idx,user_id, user_name, user_type, assign, subject,summary,kind,content,reg_date,begin_date,end_date,take_start,take_end,condition,skills,applicant,hope,people FROM 
+		(SELECT ROW_NUMBER() OVER (ORDER BY project_idx DESC) AS rnum, project_idx, user_id, user_name, user_type, assign, subject, summary, kind, content, reg_date, begin_date, end_date, take_start, take_end, condition, skills, applicant, hope, people FROM projectBbs where ${param3}) 
+		WHERE rnum BETWEEN #{param1} and #{param2}
+	</select>
+	
+	
+	<!-- 검색한 리스트 불러오기1 -->
+	<select id="searchCall" resultType="com.spring.main.dto.ProjectDto">
+		SELECT project_idx,user_id, user_name, user_type, assign, subject,summary,kind,content,reg_date,begin_date,end_date,take_start,take_end,condition,skills,applicant,hope,people FROM 
+		(SELECT ROW_NUMBER() OVER (ORDER BY project_idx DESC) AS rnum, project_idx, user_id, user_name, user_type, assign, subject, summary, kind, content, reg_date, begin_date, end_date, take_start, take_end, condition, skills, applicant, hope, people FROM projectBbs where ${param3} like #{param4}) 
+		WHERE rnum BETWEEN #{param1} and #{param2}
+	</select>
+	
+	<!-- 제목+내용 검색한 리스트 불러오기2  -->
+	<select id="moresearchCall" resultType="com.spring.main.dto.ProjectDto">
+		SELECT project_idx,user_id, user_name, user_type, assign, subject,summary,kind,content,reg_date,begin_date,end_date,take_start,take_end,condition,skills,applicant,hope,people FROM 
+		(SELECT ROW_NUMBER() OVER (ORDER BY project_idx DESC) AS rnum, project_idx, user_id, user_name, user_type, assign, subject, summary, kind, content, reg_date, begin_date, end_date, take_start, take_end, condition, skills, applicant, hope, people FROM projectBbs where subject like #{param3} or content like #{param3}) 
+		WHERE rnum BETWEEN #{param1} and #{param2}
+	</select>
+	
+	<!-- 유저의 기술 추출 -->
+	<select id="userskills" resultType="String">
+		select user_skill from membership where user_id = #{param1}
+	</select>
+	
+	
+	<!-- 해당프로젝트의 신청내역 개수 불러오기-->
+	<select id="applyCount" resultType="Integer">
+		select count(*) from applicantBbs where project_idx = #{param1}
+	</select>
+	
+	<!-- 해당프로젝트의 신청내역 가져오기 -->
+	<select id="applyCall" resultType="com.spring.main.dto.applicantDto">
+		select project_idx, user_id, user_name, user_type, assign, reg_date from (select row_number() over (order by project_idx desc) as rnum, project_idx, user_id, user_name, user_type, assign, reg_date from applicantBbs where project_idx = #{param3} order by reg_date asc)
+		where rnum between #{param1} and #{param2}
+	</select>
+	
+	<!-- 프로젝트 신청수락해서 마이프로젝트에 넣기 -->
+	<insert id="myprojectinto">
+		insert into myProject(project_idx,user_id) values(#{param1},#{param2})
+	</insert>
+	<!-- 팀에 넣기 -->
+	<insert id="teaminto">
+		insert into projectTeam(project_idx,user_id,user_name,user_type) values(#{param1},#{param2},#{param3},#{param4})
+	</insert>
+	<!-- 거절해서 해당 신청목록 삭제시키기 -->
+	<delete id="applydelete">
+		delete from applicantBbs where project_idx = #{param1} and user_id = #{param2}
+	</delete>
+	
+	<!-- 유저 정보 가져오기 -->
+	<select id="userfind" resultType="com.spring.main.dto.membershipDTO">
+		select * from membership where user_id = #{param1}
+	</select>
+	
+	<!-- 프로젝트 신청 넣기 -->
+	<insert id="applyinto">
+		insert into applicantBbs(project_idx,user_id,user_name,user_type,assign) values(#{param1},#{param2},#{param3},#{param4},#{param5})
+	</insert>
+	<!-- 프로젝트 지원자수 올리기 -->
+	<update id="applyup">
+		update projectBbs set applicant = applicant+1 where project_idx = #{param1}
+	</update>
+	<!-- 프로젝트 지원자수 감소 -->
+	<update id="applydown">
+		update projectBbs set applicant = applicant-1 where project_idx = #{param1}
+	</update>
+	
+	
+	<!-- 세션본인의 파트너신청 취소하기 -->
+	<delete id="applyout">
+		delete from applicantBbs where project_idx = #{param1} and user_id = #{param2}
+	</delete>
+	
+	<!-- 프로젝트 상세보기시에 프로젝트의 팀에 세션이 있는지를 위한 목록 꺼내기 -->
+	<select id="teamuserfind" resultType="String">
+		select user_id from projectTeam where project_idx = #{param1}
+	</select>
+	
+	<!-- 해당 idx의 팀에 속해있는지 1  -->
+	<select id="teaminfind" resultType="String">
+		select user_id from projectTeam where project_idx = #{param1} and user_id = #{param2} 
+	</select>
+	
+	<!--  해당 idx의 팀에 신청을 해서 대기중인지 2 -->
+	<select id="teaminapply" resultType="String">
+		select user_id from applicantBbs where project_idx = #{param1} and user_id = #{param2}
+	</select>
+	
+	<!-- 해당idx 프로젝트의 팀 불러오기-->
+	<select id="teamCall" resultType="com.spring.main.dto.projectTeamBean">
+		select * from projectTeam where project_idx = #{param1}
+	</select>
+	<!-- 해당idx 프로젝트의 팀원 삭제하기 -->
+	<delete id="teamdel">
+		delete from projectTeam where project_idx = #{param1} and user_id = #{param2}
+	</delete>
+	<!-- myProject의 인원 삭제시키기 -->
+	<delete id="myprojectdel">
+		delete from myProject where project_idx = #{param1} and user_id = #{param2}
+	</delete>
+	
+	<!-- 글쓰기전 글쓴유저의 정보 가져오기. -->
+	<select id="usernamefind" resultType="String">
+		select user_name from membership where user_id = #{param1}
+	</select>
+	
+	<select id="usertypefind" resultType="String">
+		select user_type from membership where user_id = #{param1}
+	</select>
+	
+	<select id="assignfind" resultType="String">
+		select assign from membership where user_id = #{param1}
+	</select>
+	
+	
+	<!-- 글쓰기 -->
+	<insert id="projectwrite" parameterType="com.spring.main.dto.ProjectDto" useGeneratedKeys="true"
+		keyProperty="project_idx" keyColumn="project_idx">
+		<!-- 글 쓸때 글의 idx가 뭔지 가져오는데 조건이 있음. -->
+		<!-- 파라메터타입이 "사용할 빈" 으로 지정, useGeneratedKey="true" 로 해야 insert 후 idx 키를 생성-->
+		<!-- keyProperty ="idx" - 키가 될 필드 지정, keyColume="idx" 키가 저장된 컬럼지정 -->
+		insert into projectBbs(project_idx, user_id, user_name, user_type, assign, subject, summary, kind, content, begin_date, end_date, take_start, take_end, condition, skills, hope, people)
+		values(seq_project_idx.NEXTVAL, #{user_id}, #{user_name}, #{user_type} , #{assign}, #{subject}, #{summary}, #{kind}, #{content}, #{begin_date}, #{end_date}, #{take_start}, #{take_end}, '모집중', #{skills}, #{hope}, #{people})
+	
+	</insert>
+	<!-- 프로젝트 파일등록 -->
+	<insert id="projectwriteFile">
+		insert into projectFiles(p_file_idx, project_idx, old_file, new_file)
+		values(seq_p_file_idx.NEXTVAL, #{param1}, #{param2}, #{param3})
+	</insert>
+	
+	<!-- 파일 삭제시 DB파일내용 삭제 -->
+	<delete id="projectFileUpdate">
+		delete from projectFiles where new_file = #{param1}
+	</delete>
+	
+	<!-- 프로젝트상세보기 -->
+	<select id="projectdetail" resultType="com.spring.main.dto.ProjectDto">
+		select * from projectBbs where project_idx = #{param1}
+	</select>
+	
+	<!-- 상세보기에 업로드 되있는 파일 불러오기 -->
+	<select id="projectFileList" resultType="com.spring.main.dto.ProjectFilesDto">
+		select * from projectFiles where project_idx = #{param1}		
+	</select>
+	
+	<!-- 파일 다운로드하기 -->
+	<select id="projectdownloadName" resultType="String">
+		select old_file from projectFiles where new_file = #{param1}
+	</select>
+	
+	<!-- 글 수정하기 -->
+	<update id="projectupdate">
+		update projectBbs set assign = #{assign}, subject = #{subject}, summary = #{summary}, content = #{content}, kind = #{kind},
+		begin_date = #{begin_date}, end_date = #{end_date}, take_start = #{take_start}, take_end = #{take_end}, skills = #{skills},  hope = #{hope}, people = #{people},  condition = #{condition} where project_idx = #{project_idx}
+	</update>	
+
+	<!-- 파일 삭제시 DB파일내용 삭제 -->
+	<delete id="filenamedelete">
+		delete from projectFiles where new_file = #{param1}
+	</delete>
+	
+	<!-- 삭제시에 업로드 되있는 파일이름 가져오기 -->
+	<select id="projectfilefind" resultType="String">
+		select new_file from projectFiles where project_idx = #{param1}		
+	</select>
+	
+	<!-- 프로젝트글 삭제하기 -->
+	<delete id="projectdelete" >
+		delete from projectBbs where project_idx = #{param1}
+	</delete>
+	
+	<!-- R 리플 댓글 등록하기 -->
+	<insert id="repleinsert">
+		insert into projectComment(p_comment_idx, project_idx, user_id, user_name, content) 
+		values(seq_p_comment_idx.NEXTVAL, #{param1}, #{param2}, #{param3}, #{param4})
+	</insert>
+	<!-- 해당 프로젝트의 리플 갯수 가져오기 -->
+	<select id="repleCount" resultType="Integer">
+		select count(*) from projectComment where project_idx = #{param1}
+	</select>
+	
+	<!-- 해당프로젝트의 리플불러오기 -->
+	<select id="repleCall" resultType="com.spring.main.dto.projectcommentDto">
+		SELECT p_comment_idx, project_idx, user_id, user_name , content, reg_date FROM 
+		(SELECT ROW_NUMBER() OVER (ORDER BY project_idx DESC) AS rnum, p_comment_idx, project_idx, user_id, user_name , content, reg_date FROM projectComment where project_idx  = #{param3} order by p_comment_idx asc) 
+		WHERE rnum BETWEEN #{param1} and #{param2}
+	</select>
+	
+	<!-- 댓글번호만으로 댓글내용 수정하기 -->
+	<update id="repleupdate">
+		update projectComment set content = #{param2} where p_comment_idx = #{param1}
+	</update>
+	<!-- 프로젝트 댓글 삭제하기 -->
+	<delete id="repledel">
+		delete from projectComment where p_comment_idx = #{param1}
+	</delete>
+
+		
+</mapper>

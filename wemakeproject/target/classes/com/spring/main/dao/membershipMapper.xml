@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.main.dao.membershipInterface">
+	<!-- 중복확인 -->
+	<select id="overlay" resultType="String">
+		SELECT user_id FROM membership WHERE user_id = #{param1}
+	</select>
+	
+	<!-- 회원가입 -->
+	<insert id="join" parameterType="com.spring.main.dto.membershipDTO">
+		INSERT INTO membership(user_id,user_pw,user_name,email,user_birth,user_skill,user_type,assign,phone,grade)
+			VALUES(#{user_id},#{user_pw},#{user_name},#{email},#{user_birth},#{user_skill},#{user_type},#{assign},#{phone},#{grade})
+	</insert>
+	
+	<!-- 로그인 -->
+	<select id="securityLogin" resultType="String">
+		SELECT user_pw FROM membership WHERE user_id = #{param1}
+	</select>
+	
+	<!-- 메인에서 로그인 정보 보내기 -->
+	<select id="mainLoginInfo" resultType="com.spring.main.dto.membershipDTO">
+		SELECT * FROM membership WHERE user_id = #{user_id}
+	</select>
+	
+	<!-- 아이디 찾기 -->
+	<select id="findId" resultType="String">
+		SELECT user_id FROM membership WHERE user_name=#{param1} AND email=#{param2} AND phone=#{param3}
+	</select>
+	
+	<!-- 비밀번호 재설정 가기 -->
+	<select id="membershipRePass" resultType="com.spring.main.dto.membershipDTO">
+		SELECT * FROM membership WHERE user_id=#{param1} AND user_name=#{param2} AND phone=#{param3}
+	</select>
+	
+	<!-- 비밀번호 재설정 -->
+	<update id="membershipRP" parameterType="com.spring.main.dto.membershipDTO">
+		UPDATE membership SET user_pw=#{user_pw} WHERE user_id=#{user_id}
+	</update>
+	
+	<!-- 마아페이지 -->
+	<select id="myPage" resultType="com.spring.main.dto.membershipDTO">
+		SELECT * FROM membership WHERE user_id=#{param1}
+	</select>
+	
+	<!-- 개인정보수정 페이지 -->
+	<select id="membershipUpdate" resultType="com.spring.main.dto.membershipDTO">
+		SELECT * FROM membership WHERE user_id=#{param1}
+	</select>
+	
+	<!-- 회원탈퇴 -->
+	<delete id="membershipDelete">
+		DELETE FROM membership WHERE user_id=#{param1}
+	</delete>
+	
+	<!-- 개인정보수정 -->
+	<update id="membershipInfoUpdate" parameterType="com.spring.main.dto.membershipDTO">
+		UPDATE membership SET email=#{email}, user_birth=#{user_birth},
+			user_skill=#{user_skill}, user_type=#{user_type}, assign=#{assign}, phone=#{phone}, grade=#{grade}
+				WHERE user_id=#{user_id}
+	</update>
+	
+	<!-- 내 정보 넘기기 -->
+	<select id="membershipInfom" resultType="com.spring.main.dto.membershipDTO">
+		SELECT * FROM membership WHERE user_id=#{param1}
+	</select>
+	
+	<!-- 모집중인 프로젝트 리스트 -->
+	<select id="membershipResistProject" resultType="com.spring.main.dto.ProjectBean">
+		SELECT DISTINCT pb.subject, pb.begin_date, pb.end_date, pb.condition , pb.project_idx
+		FROM myProject mp, projectBbs pb WHERE mp.project_idx = pb.project_idx AND mp.user_id = #{param1}  
+        AND pb.condition = '모집중'
+	</select>
+	
+	<!-- 진행중인 프로젝트 리스트 -->
+	<select id="membershipIngProject" resultType="com.spring.main.dto.ProjectBean">
+		SELECT DISTINCT pb.subject, pb.begin_date, pb.end_date, pb.condition , pb.project_idx
+		FROM myProject mp, projectBbs pb, projectTeam pt WHERE mp.project_idx = pb.project_idx AND
+		pt.project_idx = mp.project_idx AND mp.user_id = #{param1} AND mp.user_id = pt.user_id AND pb.condition = '진행중'
+	</select>
+	
+	<!-- 지원한 프로젝트 리스트 -->
+	<select id="membershipVolunteer" resultType="com.spring.main.dto.ProjectBean">
+		SELECT pb.subject, pb.begin_date, pb.end_date, pb.condition , pb.project_idx
+		FROM projectBbs pb, applicantBbs ab WHERE ab.user_id = #{param1} AND pb.project_idx = ab.project_idx
+	</select>
+	
+	<!-- 완료한 프로젝트 리스트 -->
+	<select id="membershipEndProject" resultType="com.spring.main.dto.ProjectBean">
+		SELECT pb.subject, pb.begin_date, pb.end_date, pb.condition, pb.project_idx
+		FROM projectBbs pb, myProject mp WHERE mp.user_id = #{param1} AND pb.project_idx = mp.project_idx AND pb.condition = '완료'
+	</select>
+	
+	<!-- 내 QnA -->
+	<select id="membershipQna" resultType="com.spring.main.dto.QnADto">
+		SELECT idx, user_id, subject, reg_date, hit, comment_count
+		FROM totalBbs WHERE user_id = #{param1} AND category = 'question'
+	</select>
+	
+	<!-- 멘토링 프로젝트 -->
+	<select id="mentoProject" resultType="com.spring.main.dto.ProjectBean">
+		SELECT pb.project_idx,pb.subject, pb.begin_date, pb.end_date, pb.condition
+		FROM myProject mp, projectTeam pt, projectBbs pb WHERE mp.user_id= #{param1} AND mp.project_idx = pt.project_idx AND
+		mp.project_idx = pb.project_idx AND pt.user_type = '멘토' AND pt.user_id = mp.user_id
+	</select>
+	
+	<!-- 멘토링 취소 요청 -->
+	<delete id="mentoDelete">
+		DELETE FROM myProject mp WHERE EXISTS(
+			SELECT 1 FROM projectTeam pt WHERE mp.user_id = #{param1} AND mp.project_idx = pt.project_idx 
+    		AND pt.user_type = '멘토')
+	</delete>
+	
+	<!-- 멘토링 삭제 -->
+	<delete id="mentoDelete2">
+		DELETE FROM projectTeam WHERE user_id = #{param1} AND user_type = '멘토'
+	</delete>
+	
+	<!-- 전체  게시물 수 -->
+	<select id="allCount" resultType="Integer">
+		SELECT COUNT(*) FROM teamBbs
+	</select>
+	
+	<!-- 리스트 불러오기 -->
+	<select id="listCall" resultType="com.spring.main.dto.TeamDto">
+	SELECT tb_idx, project_idx, tb_subject, tb_content, writer, reg_date
+		FROM (
+			SELECT tb_idx, 
+				project_idx, 
+				tb_subject, 
+				tb_content, 
+				writer, 
+				reg_date,  
+				ROW_NUMBER() OVER(ORDER BY tb_idx DESC) AS rnum 
+				FROM teamBbs WHERE project_idx=#{param3})
+		WHERE rnum BETWEEN #{param1} AND #{param2}
+	</select>
+	
+	<!-- 팀 글삭제 -->
+	<delete id="teamDel">
+		DELETE FROM teamBbs WHERE tb_idx = #{param1}
+	</delete>
+	
+	<!-- 팀 글 삭제할 파일 추출 -->
+	<select id="teamDelFileName" resultType="String">
+		SELECT new_file FROM teamFiles WHERE tb_idx = #{param1}
+	</select>
+	
+	
+	<!-- 불러오기 -->
+	<!-- <select id="projectTeamBoardMove" resultType="com.spring.main.dto.TeamDto">
+		SELECT * FROM teamBbs WHERE project_idx = #{param1}
+	</select> -->
+	
+</mapper>
