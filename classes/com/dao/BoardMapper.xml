@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+      
+<mapper namespace="com.spring.main.dao.BoardInterface"> <!-- *부분을 해당 맵퍼의 이름으로 변경-->
+    <!-- select / insert / delete / update -->
+    
+    <!-- 파일삭제내용 반영 -->
+	<delete id="fileUpdate" parameterType="String">
+		<if test="value != null">
+			DELETE FROM files WHERE new_file = #{value}
+		</if>
+		<!-- 
+		<if test="param2 != null">
+			DELETE FROM photos WHERE newFile = #{param1} AND #{param2}
+		</if>
+		 -->
+	</delete>
+	
+	<!-- 파일업로드 -->
+	<insert id="writeFile">
+		INSERT INTO files(file_idx, old_file, new_file, idx)
+		 	VALUES(seq_file_idx.NEXTVAL, #{param1}, #{param2}, #{param3})
+	</insert>
+
+	<!-- 리스트 호출  -->
+    <select id="QnAListCall" resultType="com.spring.main.dto.QnADto">
+    	SELECT * FROM totalBbs WHERE category = #{param1} ORDER BY idx DESC 
+    </select>
+   
+    <!-- 글쓰기 (등록된 글의 idx를 가져옴)-->
+	<!-- 
+		parameterType = "com.spring.main.dto. ... : 사용 할 빈 지정"
+		useGeneratedKeys = "true" : insert 후 키 생성여부
+		keyProperty = "idx" : 키가 될 필드 지정
+		keyColume = "idx" : 키가 저장된 컬럼 지정
+	 -->
+	<insert id="QnAWrite"
+		parameterType="com.spring.main.dto.QnADto"
+		useGeneratedKeys="true"
+		keyProperty="idx"
+		keyColumn="idx">
+		INSERT INTO totalBbs(idx, user_id, subject, content, category)
+		 	VALUES(seq_idx.NEXTVAL, #{user_id}, #{subject}, #{content}, 'question')
+	</insert>
+	
+	<!-- 상세보기 -->
+	<select id="QnADetail" resultType="com.spring.main.dto.QnADto">
+		SELECT * FROM totalBbs WHERE idx = #{param1}
+	</select>
+	
+	<!-- 파일목록 불러오기 -->
+	<select id="fileList" resultType="com.spring.main.dto.FileDto">
+		SELECT * FROM files WHERE idx = #{param1}
+	</select>
+	
+	<!-- 리플리스트 불러오기 -->
+	<select id="commentList" resultType="com.spring.main.dto.CommentDto">
+		SELECT * FROM commentBbs WHERE idx = #{param1}
+	</select>
+	
+	<!-- 수정하기 -->
+	<update id="QnAUpdate">
+		UPDATE totalBbs SET subject = #{param2}, content = #{param3} WHERE idx = #{param1}
+	</update>
+	
+	<!-- 글삭제 -->
+	<delete id="del">
+		DELETE FROM totalBbs WHERE idx = #{param1}
+	</delete>
+	
+	<!-- 삭제할 파일 추출 -->
+	<select id="delFileName" resultType="String">
+		SELECT new_file FROM files WHERE idx = #{param1}
+	</select>
+	
+	<!-- 답변등록 -->
+	<insert id="commentWrite" parameterType="com.spring.main.dto.CommentDto">
+		INSERT INTO commentBbs(comment_idx, idx, user_id, content)
+		 VALUES(seq_comment_idx.NEXTVAL, #{idx}, #{user_id}, #{content})
+	</insert>
+	
+	<!-- 답변 수 증가 -->
+	<update id="commentUp">
+		UPDATE totalBbs SET comment_count = comment_count + 1 WHERE idx = #{param1}
+	</update>
+	
+	<!-- 기존 파일 삭제 -->
+	<delete id="delFiles">
+		DELETE FROM files WHERE idx = #{param1}
+	</delete>
+	
+	<!-- 답변 수정폼 띄우기 -->
+	<select id="commentDetail" resultType="com.spring.main.dto.CommentDto">
+		SELECT * FROM commentBbs WHERE comment_idx = #{param1} AND idx = #{param2}
+	</select>
+	
+	<!-- 답글 수정하기 -->
+	<update id="commentUpdate">
+		UPDATE commentBbs SET content = #{param3} WHERE idx = #{param2} AND comment_idx = #{param1}
+	</update>
+	
+	<!-- 답변삭제 -->
+	<delete id="commentDel">
+		DELETE FROM commentBbs WHERE comment_idx = #{param1} AND idx = #{param2}
+	</delete>
+	
+	<!-- 답변 수 감소 -->
+	<update id="commentDown">
+		UPDATE totalBbs SET comment_count = comment_count - 1 WHERE idx = #{param1}
+	</update>
+	
+	<!-- 전체 게시물 수 구하기 -->
+	<select id="allCount" resultType="Integer">
+		SELECT COUNT(*) FROM totalBbs WHERE category = '공지사항' OR category = '공모전'
+	</select>
+	
+	<!-- 공지사항 리스트 불러오기 -->
+	<select id="NoticeListCall" resultType="com.spring.main.dto.QnADto">
+		 SELECT idx,user_id,subject,content,reg_date,category,hit FROM (
+		      SELECT ROW_NUMBER() OVER (ORDER BY idx DESC) AS rnum,
+		        idx,
+		        user_id,
+		        subject,
+		        content,
+		        reg_date,
+		        category,
+		        hit FROM totalBbs WHERE category = '공지사항' OR category = '공모전') 
+		  WHERE rnum BETWEEN #{param1} AND #{param2}
+	</select>
+	
+	<!-- 조건부 게시물 수 구하기 -->
+	<select id="conditionCount" resultType="Integer">
+		SELECT COUNT(*) FROM totalBbs WHERE category = #{param1}
+	</select>
+	
+	<!-- 조건부 공지사항 리스트 불러오기 -->
+	<select id="conditionCall" resultType="com.spring.main.dto.QnADto">
+		 SELECT idx,user_id,subject,content,reg_date,category,hit FROM (
+		      SELECT ROW_NUMBER() OVER (ORDER BY idx DESC) AS rnum,
+		        idx,
+		        user_id,
+		        subject,
+		        content,
+		        reg_date,
+		        category,
+		        hit FROM totalBbs WHERE category = #{param3}) 
+		  WHERE rnum BETWEEN #{param1} AND #{param2}
+	</select>
+	
+	<!-- 공지사항 글쓰기 -->
+	<insert id="writeNotice"
+		parameterType="com.spring.main.dto.QnADto"
+		useGeneratedKeys="true"
+		keyProperty="idx"
+		keyColumn="idx">
+		INSERT INTO totalBbs(idx, user_id, subject, content, category)
+		 	VALUES(seq_idx.NEXTVAL, #{user_id}, #{subject}, #{content}, #{category})
+	</insert>
+	
+	<!-- 공지사항 상세보기 -->
+	<select id="noticeDetail" resultType="com.spring.main.dto.QnADto">
+		SELECT * FROM totalBbs WHERE idx = #{param1}
+	</select>
+	
+	<!-- 공지사항 수정하기 -->
+	<update id="noticeUpdate">
+		UPDATE totalBbs SET subject = #{param2}, content = #{param3}, category = #{param4} WHERE idx = #{param1}
+	</update>
+	
+	<!-- 해당 댓글의 추천 수 증가 -->
+	<update id="goUp">
+		UPDATE commentBbs SET recommend = recommend + 1 WHERE comment_idx = #{param1}
+	</update>
+	
+	<!-- 해당 글의 총 추천 수 증가-->
+	<update id="upHit">
+		UPDATE totalBbs SET hit = hit + 1 WHERE idx = #{param1}
+	</update>
+	
+	<!-- 해당 댓글의 추천 수 감소 -->
+	<update id="goDown">
+		UPDATE commentBbs SET recommend = recommend - 1 WHERE comment_idx = #{param1}
+	</update>
+	
+	<!-- 해당 글의 총 추천 수 감소-->
+	<update id="downHit">
+		UPDATE totalBbs SET hit = hit - 1 WHERE idx = #{param1}
+	</update>
+	
+	<!-- UP누른 기록찾기 -->
+	<select id="find_push" resultType="String">
+		SELECT push_feel FROM feelCheck WHERE comment_idx = #{param1} AND push_user = #{param2}
+	</select>
+	
+	<!-- 최초 기록생성 -->
+	<insert id="addREC">
+		INSERT INTO feelCheck(comment_idx, push_user) VALUES(#{param1}, #{param2})
+	</insert>
+	
+	<!-- up누른 기록 입력 -->
+	<update id="upREC">
+		UPDATE feelCheck SET push_feel = push_feel + 1 WHERE comment_idx = #{param1} AND push_user = #{param2}
+	</update>
+	
+	<!-- down누른 기록 입력 -->
+	<update id="downREC">
+		UPDATE feelCheck SET push_feel = push_feel - 1 WHERE comment_idx = #{param1} AND push_user = #{param2}
+	</update>
+	
+	<!-- 기록 삭제 -->
+	<delete id="delREC">
+		DELETE FROM feelCheck WHERE comment_idx = #{param1} AND push_user = #{param2}
+	</delete>
+	
+	<!-- 삭제할 답변의 총 추천수 -->
+	<select id="commentCount" resultType="String">
+		SELECT recommend FROM commentBbs WHERE comment_idx = #{param1}
+	</select>
+	
+	<!-- 삭제한 답변의 추천수만큼 게시글의 추천수 감소 -->
+	<update id="hitDown">
+		UPDATE totalBbs SET hit = hit - #{param1} WHERE idx = #{param2}
+	</update>
+	
+	<!-- 검색조건과 일치하는 게시물의 숫자 구하기 -->
+	<select id="sAllCount" resultType="Integer">
+		SELECT COUNT(*) FROM totalBbs WHERE category = #{param1} AND content LIKE '%${param2}%'
+	</select>
+	
+	<!-- 검색조건에 맞는 리스트 불러오기 -->
+	<select id="keywordListCall" resultType="com.spring.main.dto.QnADto">
+		 SELECT idx,user_id,subject,content,reg_date,category,hit FROM (
+		      SELECT ROW_NUMBER() OVER (ORDER BY idx DESC) AS rnum,
+		        idx,
+		        user_id,
+		        subject,
+		        content,
+		        reg_date,
+		        category,
+		        hit FROM totalBbs WHERE content LIKE '%${param3}%' AND category = 'question') 
+		  WHERE rnum BETWEEN #{param1} AND #{param2}
+	</select>
+	
+	
+	<!-- 결과물 게시판 총 게시물 갯수 -->
+	<select id="outputAllCount" resultType="Integer">
+		SELECT COUNT(*) FROM totalBbs WHERE category='완성'
+	</select>
+	
+	<!-- 결과물 게시판 리스트 불러오기 -->
+	<select id="outputListCall" resultType="com.spring.main.dto.OutputDto">
+		SELECT idx, user_id, subject, content, reg_date, hit, new_file
+			FROM (
+				SELECT t.idx, 
+					t.user_id, 
+					t.subject, 
+					t.content, 
+					t.reg_date, 
+					t.hit,
+					f.new_file,
+					ROW_NUMBER() OVER(ORDER BY t.idx DESC) AS rnum 
+					FROM totalBbs t,files f WHERE category='완성' AND t.idx=f.idx)
+			WHERE rnum BETWEEN #{param1} AND #{param2}
+	</select>
+	
+	<!-- 결과물 게시판 글 작성 -->
+	<insert id="outputWrite"
+		parameterType="com.spring.main.dto.OutputDto"
+		useGeneratedKeys="true"
+		keyProperty="idx"
+		keyColumn="idx">
+		INSERT INTO totalBbs(idx, user_id, subject, content, category)
+		 	VALUES(seq_idx.NEXTVAL, #{user_id}, #{subject}, #{content}, '완성')
+	</insert>
+	
+	<!-- 결과물 상세보기 -->
+	<select id="outputDetail" resultType="com.spring.main.dto.OutputDto">
+		SELECT * FROM totalBbs WHERE idx = #{param1}
+	</select>
+
+	<!-- 글 삭제 -->
+ 	<delete id="outputDel">
+ 		DELETE FROM totalBbs WHERE idx = #{param1}
+ 	</delete>
+ 	
+ 	<!-- 결과물 수정하기 -->
+	<update id="outputUpdate">
+		UPDATE totalBbs SET subject = #{param2}, content = #{param3} WHERE idx = #{param1}
+	</update>
+	
+	
+	<!-- 팀 리스트 호출  -->
+    <select id="teamListCall" resultType="com.spring.main.dto.TeamDto">
+		SELECT project_idx, tb_idx, writer, tb_subject, tb_content, reg_date
+			FROM (
+				SELECT project_idx,
+					tb_idx, 
+					writer, 
+					tb_subject, 
+					tb_content, 
+					reg_date, 
+					ROW_NUMBER() OVER(ORDER BY tb_idx DESC) AS rnum 
+					FROM teamBbs WHERE project_idx = #{param3} )
+			WHERE rnum BETWEEN #{param1} AND #{param2}
+	</select>
+	
+	<!-- 메인 이미지 가져오기 -->
+	<select id="mainFileUp" resultType="com.spring.main.dto.FileDto">
+		SELECT f.new_file FROM files f, totalBbs t WHERE f.#{param1} = t.#{param1}
+	</select>
+	
+	<!-- 팀 게시판 글 작성 -->
+	<insert id="teamWrite"
+		parameterType="com.spring.main.dto.TeamDto"
+		useGeneratedKeys="true"
+		keyProperty="tb_idx"
+		keyColumn="tb_idx">
+		INSERT INTO teamBbs(tb_idx, writer, tb_subject, tb_content, project_idx)
+		 	VALUES(seq_tb_idx.NEXTVAL, #{writer}, #{tb_subject}, #{tb_content}, #{project_idx})
+	</insert>
+	
+	<!-- 파일업로드 -->
+	<insert id="teamWriteFile">
+		INSERT INTO teamFiles(t_file_idx, old_file, new_file, tb_idx)
+		 	VALUES(seq_t_file_idx.NEXTVAL, #{param1}, #{param2}, #{param3})
+	</insert>
+	
+	<!-- 팀게시물 상세보기 -->
+	<select id="teamDetail" resultType="com.spring.main.dto.TeamDto">
+		SELECT * FROM teamBbs WHERE tb_idx = #{param1}
+	</select>
+	
+	<!-- 파일목록 불러오기 -->
+	<select id="teamFileList" resultType="com.spring.main.dto.teamFilesDto">
+		SELECT * FROM teamFiles WHERE tb_idx = #{param1}
+	</select>
+	
+	<!-- 다운로드 할 원본 파일 제목 -->
+ 	 <select id="downloadName" resultType="String">
+ 	 	SELECT old_file FROM teamFiles 	WHERE new_file=#{param1}
+ 	 </select>
+	
+	<!-- 팀 게시물 수정하기 -->
+	<update id="teamUpdate">
+		UPDATE teamBbs SET tb_subject = #{param2}, tb_content = #{param3} WHERE tb_idx = #{param1}
+	</update>
+	
+	<!-- 팀 게시물 기존 파일 삭제 -->
+	<delete id="teamDelFiles">
+		DELETE FROM teamFiles WHERE tb_idx = #{param1}
+	</delete>
+	
+	<!-- 공지사항 메인 불러오기 -->
+	<select id="mainNoticeCall" resultType="com.spring.main.dto.QnADto">
+		<![CDATA[SELECT * FROM totalBbs WHERE ROWNUM<=6 AND category = '공지사항' ORDER BY idx DESC]]>
+	</select>
+	
+		<!-- 지식 메인 불러오기 -->
+	<select id="mainQnACall" resultType="com.spring.main.dto.QnADto">
+		<![CDATA[SELECT * FROM totalBbs WHERE ROWNUM<=6 AND category = 'question' ORDER BY idx DESC]]>
+	</select>
+	
+	<!-- 지식게시판 글쓰기에 유저 이름 가져오기 * 추가됨-->
+	<select id="getUserName" resultType="String">
+		SELECT user_name FROM membership WHERE user_id = #{param1}
+	</select>
+	
+	<!-- 결과물 메인 불러오기 -->
+	<select id="outputmainlist"  resultType="com.spring.main.dto.OutputDto">
+		SELECT idx, user_id, subject, content, reg_date, hit, new_file
+			FROM (
+				SELECT t.idx, 
+					t.user_id, 
+					t.subject, 
+					t.content, 
+					t.reg_date, 
+					t.hit,
+					f.new_file,
+					ROW_NUMBER() OVER(ORDER BY t.idx DESC) AS rnum 
+					FROM totalBbs t,files f WHERE category='완성' AND t.idx=f.idx)
+			WHERE rnum BETWEEN 1 AND 3
+	</select>
+	
+</mapper>
