@@ -1,0 +1,142 @@
+@CHARSET "UTF-8";
+
+.container{
+    position:absolute;
+    width: 99%;
+    min-height : 98%;
+    height : auto;
+    text-align:center;
+    vertical-align: middle;
+    display: table-cell;
+    
+}
+.outter{
+    margin-left: auto;
+    margin-right: auto;
+    top:100px;
+    width: 80%;
+    height: auto;
+    position: relative;
+    text-align: center;
+}
+#text{
+	width : 300px;
+	margin : 15px;
+}
+.searchBar{
+	display: inline-block;
+	margin: 0 auto;
+}
+.qnaList{
+	display: inline-block;
+	margin : 0 auto;
+}
+.content{
+	width:450px;
+	height:auto;
+	min-height: 350px;
+	text-align: left;
+	vertical-align: text-top;
+}
+table{
+    margin-left: 1px;
+    margin-right: auto;
+}
+table td{
+	text-align:center;
+	width:100px;
+	padding : 5px;
+	margin : 5px;
+	vertical-align: top;
+	border-collapse: collapse;
+	
+}
+.cmtSubject{
+	width:450px;
+	text-align: left;
+	vertical-align: text-top;
+	border : 1px solid #bcbcbc;
+	height: 250px;
+}
+.addCmt{
+	float:right;
+	vertical-align: text-top;
+}
+.underline td{
+	border-bottom: 1px solid #bcbcbc;
+}
+.commentList{
+	top : 10px;
+	position : relative;
+	width: auto;
+	min-height: 200px;
+	margin : 10px 0px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.recmdDiv{
+	float : left;
+	display : inline;
+	
+	position: absolute;
+	left : 30px;
+}
+
+.contentDiv{
+	display : block;
+	border : 1px solid #bcbcbc;
+	width : 550px;
+	min-height: 200px;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: left;
+	vertical-align: text-top;
+	padding : 10px;
+}
+.dateDiv{
+	display : inline;
+	float:right;
+	position: absolute;
+	right : 50px;
+}
+.delCmtDiv{
+	display : inline;
+	float:right;
+	border : 1px solid #bcbcbc;
+	position: absolute;
+	right : 50px;
+	bottom : 15px;
+}
+.modCmtDiv{
+	display : inline;
+	float:right;
+	border : 1px solid #bcbcbc;
+	position: absolute;
+	right : 100px;
+	bottom: 15px;
+}
+.foot{
+	top : 10px;
+	position : relative;
+	width: auto;
+	height: 100px;
+	margin : 10px 0px;
+	margin-left: auto;
+	margin-right: auto;
+}
+#attach{
+	text-align: left;
+}
+#smartZone{
+	display: none;
+}
+.title{
+    text-align: left
+}
+.tdSe{
+	width:650px;
+	height: 250px;
+}
+.subj{
+	width:200px;
+}
